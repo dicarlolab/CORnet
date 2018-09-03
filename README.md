@@ -10,7 +10,7 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 - Recurrent
 - State-of-the-art on predicting primate neural and behavioral responses [Brain-Score](http://brain-score.org)
 
-[read more...](#longer_motivation)
+[read more...](#longer-motivation)
 
 Brought to you with <img src="resources/brain.png" width="20px"/> from [DiCarlo Lab](http://dicarlolab.mit.edu) @ [MIT](https://mit.edu).
 
