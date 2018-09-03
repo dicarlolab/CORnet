@@ -12,7 +12,7 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 [read more...](#longer-motivation)
 
-Brought to you with <img src="resources/brain.png" width="20px"/> from [DiCarlo Lab](http://dicarlolab.mit.edu) @ [MIT](https://mit.edu).
+*Brought to you with <img src="resources/brain.png" width="25px"/> from [DiCarlo Lab](http://dicarlolab.mit.edu) @ [MIT](https://mit.edu).*
 
 
 
