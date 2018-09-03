@@ -14,15 +14,13 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 *Brought to you with <img src="resources/brain.png" width="25px"/> from [DiCarlo Lab](http://dicarlolab.mit.edu) @ [MIT](https://mit.edu).*
 
-
-
 ## Available Models
 
-Name     | Description
------------------------------------------------------------------------------------
-CORnet-Z | Our smallest, fastest model. Good neural fits
-CORnet-R | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow
-CORnet-S | CORnet-R with ResNet-like blocks. Best overall but slow to train
+| Name     | Description                                                              |
+| -------- | ------------------------------------------------------------------------ |
+| CORnet-Z | Our smallest, fastest model. Good neural fits                            |
+| CORnet-R | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
+| CORnet-S | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
 
 
 ## Quick Start
