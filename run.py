@@ -11,6 +11,7 @@ import math
 import base64
 import json
 import string
+import importlib
 from collections import OrderedDict
 
 import numpy as np
@@ -86,6 +87,12 @@ def set_gpus(n=1):
 set_gpus(FLAGS.ngpus)
 
 
+def get_model():
+    mod = importlib.import_module(f'cornet_{FLAGS.model.lower()}')
+    model = getattr(mod, f'CORnet_{FLAGS.model}')()
+    return model
+
+
 def train(restore_path=None,
           save_train_epochs=.1,
           save_val_epochs=.5,
@@ -94,7 +101,7 @@ def train(restore_path=None,
           ):
 
     model = get_model()
-    model = torch.nn.parallel.DistributedDataParallel(model.cuda())
+    model = torch.nn.DataParallel(model).cuda()
 
     train = ImageNetTrain(model)
     val = ImageNetVal(model)
@@ -199,7 +206,7 @@ def test(layer='decoder', sublayer='output', restore_path=None, imsize=224, use_
                     torchvision.transforms.Resize(imsize),
                     torchvision.transforms.ToTensor(),
                     normalize,
-                ]))
+                ])
     data_path = os.path.join(FLAGS.data_path, '*')
     model.eval()
 
