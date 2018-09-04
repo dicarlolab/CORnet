@@ -195,8 +195,9 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
         - sublayer (e.g., output, conv1, avgpool)
     """
     model = get_model()
+    model = torch.nn.DataParallel(model)
     if use_gpu:
-        model.cuda()
+        model = model.cuda()
 
     if restore_path is not None:
         ckpt_data = torch.load(restore_path)
@@ -215,7 +216,7 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
         """
         _model_feats.append(np.reshape(output, (len(output), -1)).numpy())
 
-    model_layer = getattr(model._modules[layer], sublayer)
+    model_layer = getattr(getattr(model._modules['module'], layer), sublayer)
     hook = model_layer.register_forward_hook(_store_feats)
 
     model_feats = []

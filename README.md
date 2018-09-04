@@ -16,11 +16,13 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 ## Available Models
 
+*(click on model names to download the weights of ImageNet-trained models)*
+
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
-| CORnet-Z | Our smallest, fastest model. Good neural fits                            |
-| CORnet-R | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
-| CORnet-S | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
+| [CORnet-Z](https://s3.amazonaws.com/cornet-models/cornet_z_epoch25.pth.tar) | Our smallest, fastest model. Good neural fits                            |
+| [CORnet-R](https://s3.amazonaws.com/cornet-models/cornet_r_epoch25.pth.tar) | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
+| [CORnet-S](https://s3.amazonaws.com/cornet-models/cornet_s_epoch43.pth.tar) | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
 
 
 ## Quick Start

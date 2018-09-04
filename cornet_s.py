@@ -1,3 +1,4 @@
+import math
 from collections import OrderedDict
 from torch import nn
 
@@ -50,7 +51,7 @@ class CORblock_S(nn.Module):
     def forward(self, inp):
         x = self.conv_input(inp)
 
-        for t in range(self.ntimes):
+        for t in range(self.times):
             if t == 0:
                 skip = self.norm_skip(self.skip(x))
                 self.conv2.stride = (2, 2)
@@ -82,15 +83,16 @@ def CORnet_S():
             ('conv1', nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                             bias=False)),
             ('norm1', nn.BatchNorm2d(64)),
-            ('nonlin', nn.ReLU()),
+            ('nonlin1', nn.ReLU()),
             ('pool', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
             ('conv2', nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1,
                             bias=False)),
             ('norm2', nn.BatchNorm2d(64)),
+            ('nonlin2', nn.ReLU()),
             ('output', Identity())
         ]))),
         ('V2', CORblock_S(64, 128, times=2)),
-        ('V4', CORblock_S(128, 256, times=2)),
+        ('V4', CORblock_S(128, 256, times=4)),
         ('IT', CORblock_S(256, 512, times=2)),
         ('decoder', nn.Sequential(OrderedDict([
             ('avgpool', nn.AdaptiveAvgPool2d(1)),
