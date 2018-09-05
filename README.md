@@ -44,7 +44,7 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 Deep artificial neural networks with spatially repeated processing (aka, deep convolutional ANNs) have been established as the best class of candidate models of visual processing in primate ventral visual processing stream. Over the past five years, these ANNs have evolved from a simple feedforward eight-layer architecture in AlexNet to extremely deep and branching NASNet architectures, demonstrating increasingly better object categorization performance and increasingly better explanatory power of both neural and behavioral responses. However, from the neuroscientist's point of view, the relationship between such very deep architectures and the ventral visual pathway is incomplete in at least two ways. On one hand, current state-of-the-art ANNs appear to be too complex (e.g. now over 100 levels) compared with the relatively shallow cortical hierarchy (4-8 levels), which makes it difficult to map their elements to those in the ventral visual stream and makes it difficult to understand what they are doing. On the other hand, current state-of-the-art ANNs appear to be not complex enough in that they lack recurrent connections and the resulting neural response dynamics that are commonplace in the ventral visual stream. Here we describe our ongoing efforts to resolve both of these issues by developing a "CORnet" family of deep neural network architectures. Rather than just seeking high object recognition performance (as the state-of-the-art ANNs above), we instead try to reduce the model family to its most important elements (CORnet-Z) and then gradually build new ANNs with recurrent and skip connections while monitoring both performance and the match between each new CORnet model and a large body of primate brain and behavioral data. We report here that our current best ANN model derived from this approach (CORnet-S) is among the top models on Brain-Score, a composite benchmark for comparing models to the brain, but is simpler than other deep ANNs in terms of the number of convolutions performed along the longest path of information processing in the model. All CORnet models are available at \url{github.com/dicarlolab/CORnet}, and we plan to update this manuscript and the available models in this family as they are produced.
 
-Read more: [Kubilius\*, Schrimpf\*, et al. (biorxiv, 2018)]()
+Read more: [Kubilius\*, Schrimpf\*, et al. (biorxiv, 2018)](https://doi.org/10.1101/408385)
 
 ## Requirements
 
@@ -57,7 +57,7 @@ Read more: [Kubilius\*, Schrimpf\*, et al. (biorxiv, 2018)]()
 
 ## Citation
 
-Kubilius, J., Schrimpf, M., Nayebi, A., Bear, D., Yamins, D.L.K., DiCarlo, J.J. (2018) *CORnet: Modeling the Neural Mechanisms of Core Object Recognition.* biorxiv.
+Kubilius, J., Schrimpf, M., Nayebi, A., Bear, D., Yamins, D.L.K., DiCarlo, J.J. (2018) *CORnet: Modeling the Neural Mechanisms of Core Object Recognition.* biorxiv. doi:10.1101/408385
 
 ## License
 
