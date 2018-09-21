@@ -31,11 +31,15 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 `python run.py test --restore_path <path to model weights> - --model S --data_path <path to your image folder>`
 
+**NOTE** the extra `-` between `--restore_path` and `--model`!
+
+Add `-o <path to save features>` if you want model responses to be saved someplace.
+
 ### Want to train on ImageNet?
 
 1. [Get ImageNet](https://github.com/facebook/fb.resnet.torch/blob/master/INSTALL.md#download-the-imagenet-dataset) if you don't have it yet. If you do, note that validation images need to be put in separate folders, just like train data. Follow the instructions in that link to do so easily.
 
-2. `python run.py train - --model Z`. On a single Titan X, it will train for about 20 hours.
+2. `python run.py train - --model Z`. On a single Titan X, it will train for about 20 hours. **NOTE** the extra `-` between `train` and `--model`!
 
 
 # Details
