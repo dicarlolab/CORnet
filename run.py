@@ -81,7 +81,7 @@ def set_gpus(n=1):
         gpus = gpus[gpus['index'].isin(visible)]
     gpus['ratio'] = gpus['memory.free [MiB]'] / gpus['memory.total [MiB]']
     gpus = gpus.sort_values(by='ratio', ascending=False)
-    os.environ['CUDA_DEVICE_ORDER'] = ='PCI_BUS_ID'  # making sure GPUs are numberer the same way as in nvidia_smi
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numberer the same way as in nvidia_smi
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
         [str(i) for i in gpus['index'].iloc[:n]])
 
