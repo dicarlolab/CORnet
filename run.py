@@ -81,6 +81,7 @@ def set_gpus(n=1):
         gpus = gpus[gpus['index'].isin(visible)]
     gpus['ratio'] = gpus['memory.free [MiB]'] / gpus['memory.total [MiB]']
     gpus = gpus.sort_values(by='ratio', ascending=False)
+    os.environ['CUDA_DEVICE_ORDER'] = ='PCI_BUS_ID'  # making sure GPUs are numberer the same way as in nvidia_smi
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
         [str(i) for i in gpus['index'].iloc[:n]])
 
@@ -97,7 +98,7 @@ def get_model():
 def train(restore_path=None,
           save_train_epochs=.1,
           save_val_epochs=.5,
-          save_model_epochs=4,
+          save_model_epochs=5,
           save_model_secs=60*10
           ):
 
@@ -208,7 +209,6 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
                     torchvision.transforms.ToTensor(),
                     normalize,
                 ])
-    data_path = os.path.join(FLAGS.data_path, '*')
     model.eval()
 
     def _store_feats(layer, inp, output):
@@ -217,7 +217,7 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
         _model_feats.append(np.reshape(output, (len(output), -1)).numpy())
 
     model_layer = getattr(getattr(model._modules['module'], layer), sublayer)
-    hook = model_layer.register_forward_hook(_store_feats)
+    model_layer.register_forward_hook(_store_feats)
 
     model_feats = []
     with torch.no_grad():
@@ -318,7 +318,7 @@ class ImageNetVal(object):
         start = time.time()
         rec = {'loss': 0, 'top1': 0, 'top5': 0}
         with torch.no_grad():
-            for step, (inp, target) in enumerate(tqdm.tqdm(self.data_loader, desc=self.name)):
+            for (inp, target) in tqdm.tqdm(self.data_loader, desc=self.name):
                 target = target.cuda(non_blocking=True)
                 output = self.model(inp)
 
