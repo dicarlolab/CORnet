@@ -27,12 +27,12 @@ class CORblock_R(nn.Module):
         self.conv_input = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,
                                     stride=stride, padding=kernel_size // 2)
         self.norm_input = nn.GroupNorm(32, out_channels)
-        self.nonlin_input = nn.ReLU()
+        self.nonlin_input = nn.ReLU(inplace=True)
 
         self.conv1 = nn.Conv2d(out_channels, out_channels,
                                kernel_size=3, padding=1, bias=False)
         self.norm1 = nn.GroupNorm(32, out_channels)
-        self.nonlin1 = nn.ReLU()
+        self.nonlin1 = nn.ReLU(inplace=True)
 
         self.output = Identity()
 
