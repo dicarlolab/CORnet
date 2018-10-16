@@ -4,11 +4,19 @@ from torch import nn
 
 class Flatten(nn.Module):
 
+    """
+    Helper module for flattening input tensor to 1-D for the use in Linear modules
+    """
+
     def forward(self, x):
         return x.view(x.size(0), -1)
 
 
 class Identity(nn.Module):
+
+    """
+    Helper module that stores the current tensor. Useful for accessing by name
+    """
 
     def forward(self, x):
         return x
@@ -22,13 +30,13 @@ class CORblock_Z(nn.Module):
                               stride=stride, padding=kernel_size // 2)
         self.nonlin = nn.ReLU(inplace=True)
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.output = Identity()
+        self.output = Identity()  # for an easy access to this block's output
 
     def forward(self, inp):
         x = self.conv(inp)
         x = self.nonlin(x)
         x = self.pool(x)
-        x = self.output(x)
+        x = self.output(x)  # for an easy access to this block's output
         return x
 
 
@@ -48,11 +56,7 @@ def CORnet_Z():
 
     # weight initialization
     for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            nn.init.xavier_uniform_(m.weight)
-            if m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.Linear):
+        if isinstance(m, (nn.Conv2d, nn.Linear)):
             nn.init.xavier_uniform_(m.weight)
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)

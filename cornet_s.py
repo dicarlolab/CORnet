@@ -5,11 +5,19 @@ from torch import nn
 
 class Flatten(nn.Module):
 
+    """
+    Helper module for flattening input tensor to 1-D for the use in Linear modules
+    """
+
     def forward(self, x):
         return x.view(x.size(0), -1)
 
 
 class Identity(nn.Module):
+
+    """
+    Helper module that stores the current tensor. Useful for accessing by name
+    """
 
     def forward(self, x):
         return x
@@ -17,7 +25,7 @@ class Identity(nn.Module):
 
 class CORblock_S(nn.Module):
 
-    scale = 4
+    scale = 4  # scale of the bottleneck convolution channels
 
     def __init__(self, in_channels, out_channels, times=1):
         super().__init__()
@@ -41,7 +49,7 @@ class CORblock_S(nn.Module):
                                kernel_size=1, bias=False)
         self.nonlin3 = nn.ReLU(inplace=True)
 
-        self.output = Identity()
+        self.output = Identity()  # for an easy access to this block's output
 
         for t in range(self.times):
             setattr(self, f'norm1_{t}', nn.BatchNorm2d(out_channels * self.scale))
@@ -79,7 +87,7 @@ class CORblock_S(nn.Module):
 
 def CORnet_S():
     model = nn.Sequential(OrderedDict([
-        ('V1', nn.Sequential(OrderedDict([
+        ('V1', nn.Sequential(OrderedDict([  # this one is custom to save GPU memory
             ('conv1', nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                             bias=False)),
             ('norm1', nn.BatchNorm2d(64)),

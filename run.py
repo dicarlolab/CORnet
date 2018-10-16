@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 import time
 import glob
@@ -8,12 +7,7 @@ import subprocess
 import shlex
 import io
 import pprint
-import math
-import base64
-import json
-import string
 import importlib
-from collections import OrderedDict
 
 import numpy as np
 import pandas
@@ -26,8 +20,6 @@ import torchvision
 
 from PIL import Image
 Image.warnings.simplefilter('ignore')
-
-from sklearn.decomposition import PCA
 
 np.random.seed(0)
 torch.manual_seed(0)
@@ -57,7 +49,7 @@ parser.add_argument('--lr', '--learning_rate', default=.1, type=float,
                     help='initial learning rate')
 parser.add_argument('--lr_schedule', default='StepLR')
 parser.add_argument('--step_size', default=10, type=int,
-                    help='after how many epoch learning rate should be decreased 10x')
+                    help='after how many epochs learning rate should be decreased 10x')
 parser.add_argument('--momentum', default=.9, type=float, help='momentum')
 parser.add_argument('--weight_decay', default=1e-4, type=float,
                     help='weight decay ')
@@ -79,9 +71,8 @@ def set_gpus(n=1):
         visible = [int(i)
                    for i in os.environ['CUDA_VISIBLE_DEVICES'].split(',')]
         gpus = gpus[gpus['index'].isin(visible)]
-    gpus['ratio'] = gpus['memory.free [MiB]'] / gpus['memory.total [MiB]']
-    gpus = gpus.sort_values(by='ratio', ascending=False)
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numberer the same way as in nvidia_smi
+    gpus = gpus.sort_values(by='memory.free [MiB]', ascending=False)
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numbered the same way as in nvidia_smi
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
         [str(i) for i in gpus['index'].iloc[:n]])
 
@@ -96,29 +87,29 @@ def get_model():
 
 
 def train(restore_path=None,
-          save_train_epochs=.1,
-          save_val_epochs=.5,
-          save_model_epochs=5,
-          save_model_secs=60*10
+          save_train_epochs=.1,  # how often save output during training
+          save_val_epochs=.5,  # how often save output during validation
+          save_model_epochs=5,  # how often save model weigths
+          save_model_secs=60*10  # how often save model (in sec)
           ):
 
     model = get_model()
     model = torch.nn.DataParallel(model).cuda()
 
-    train = ImageNetTrain(model)
-    val = ImageNetVal(model)
+    trainer = ImageNetTrain(model)
+    validator = ImageNetVal(model)
 
     start_epoch = 0
     if restore_path is not None:
         ckpt_data = torch.load(restore_path)
         start_epoch = ckpt_data['epoch']
         model.load_state_dict(ckpt_data['state_dict'])
-        train.optimizer.load_state_dict(ckpt_data['optimizer'])
+        trainer.optimizer.load_state_dict(ckpt_data['optimizer'])
 
-    recs = []
+    records = []
     recent_time = time.time()
 
-    nsteps = len(train.data_loader)
+    nsteps = len(trainer.data_loader)
     if save_train_epochs is not None:
         save_train_steps = (np.arange(0, FLAGS.epochs + 1,
                                       save_train_epochs) * nsteps).astype(int)
@@ -135,25 +126,25 @@ def train(restore_path=None,
                }
     for epoch in tqdm.trange(0, FLAGS.epochs + 1, initial=start_epoch, desc='epoch'):
         data_load_start = np.nan
-        for step, data in enumerate(tqdm.tqdm(train.data_loader, desc=train.name)):
+        for step, data in enumerate(tqdm.tqdm(trainer.data_loader, desc=trainer.name)):
             data_load_time = time.time() - data_load_start
-            global_step = epoch * len(train.data_loader) + step
+            global_step = epoch * len(trainer.data_loader) + step
 
             if save_val_steps is not None:
                 if global_step in save_val_steps:
-                    results[val.name] = val()
-                    train.model.train()
+                    results[validator.name] = validator()
+                    trainer.model.train()
 
             if FLAGS.output_path is not None:
-                recs.append(results)
+                records.append(results)
                 if len(results) > 1:
-                    pickle.dump(recs, open(FLAGS.output_path + 'results.pkl', 'wb'))
+                    pickle.dump(records, open(FLAGS.output_path + 'results.pkl', 'wb'))
 
                 ckpt_data = {}
                 ckpt_data['flags'] = FLAGS.__dict__.copy()
                 ckpt_data['epoch'] = epoch
                 ckpt_data['state_dict'] = model.state_dict()
-                ckpt_data['optimizer'] = train.optimizer.state_dict()
+                ckpt_data['optimizer'] = trainer.optimizer.state_dict()
 
                 if save_model_secs is not None:
                     if time.time() - recent_time > save_model_secs:
@@ -171,16 +162,16 @@ def train(restore_path=None,
                     pprint.pprint(results)
 
             if epoch < FLAGS.epochs:
-                frac_epoch = (global_step + 1) / len(train.data_loader)
-                rec = train(frac_epoch, *data)
-                rec['data_load_dur'] = data_load_time
+                frac_epoch = (global_step + 1) / len(trainer.data_loader)
+                record = trainer(frac_epoch, *data)
+                record['data_load_dur'] = data_load_time
                 results = {'meta': {'step_in_epoch': step + 1,
                                     'epoch': frac_epoch,
                                     'wall_time': time.time()}
                            }
                 if save_train_steps is not None:
                     if step in save_train_steps:
-                        results[train.name] = rec
+                        results[trainer.name] = record
 
             data_load_start = time.time()
 
@@ -272,20 +263,20 @@ class ImageNetTrain(object):
         target = target.cuda(non_blocking=True)
         output = self.model(inp)
 
-        rec = {}
+        record = {}
         loss = self.loss(output, target)
-        rec['loss'] = loss.item()
-        rec['top1'], rec['top5'] = accuracy(output, target, topk=(1, 5))
-        rec['top1'] /= len(output)
-        rec['top5'] /= len(output)
-        rec['learning_rate'] = self.lr.get_lr()[0]
+        record['loss'] = loss.item()
+        record['top1'], record['top5'] = accuracy(output, target, topk=(1, 5))
+        record['top1'] /= len(output)
+        record['top5'] /= len(output)
+        record['learning_rate'] = self.lr.get_lr()[0]
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        rec['dur'] = time.time() - start
-        return rec
+        record['dur'] = time.time() - start
+        return record
 
 
 class ImageNetVal(object):
@@ -316,22 +307,22 @@ class ImageNetVal(object):
     def __call__(self):
         self.model.eval()
         start = time.time()
-        rec = {'loss': 0, 'top1': 0, 'top5': 0}
+        record = {'loss': 0, 'top1': 0, 'top5': 0}
         with torch.no_grad():
             for (inp, target) in tqdm.tqdm(self.data_loader, desc=self.name):
                 target = target.cuda(non_blocking=True)
                 output = self.model(inp)
 
-                rec['loss'] += self.loss(output, target).item()
+                record['loss'] += self.loss(output, target).item()
                 p1, p5 = accuracy(output, target, topk=(1, 5))
-                rec['top1'] += p1
-                rec['top5'] += p5
+                record['top1'] += p1
+                record['top5'] += p5
 
-        for key in rec:
-            rec[key] /= len(self.data_loader.dataset.samples)
-        rec['dur'] = (time.time() - start) / len(self.data_loader)
+        for key in record:
+            record[key] /= len(self.data_loader.dataset.samples)
+        record['dur'] = (time.time() - start) / len(self.data_loader)
 
-        return rec
+        return record
 
 
 def accuracy(output, target, topk=(1,)):
