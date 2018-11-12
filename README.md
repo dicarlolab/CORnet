@@ -41,6 +41,10 @@ Add `-o <path to save features>` if you want model responses to be saved somepla
 
 2. `python run.py train - --model Z --workers 20`. On a single Titan X, it will train for about 20 hours. Models R and S will require 2 GPUs. **NOTE** the extra `-` between `train` and `--model`!
 
+### If installation is needed
+
+`pip install git+https://github.com/dicarlolab/CORnet`
+
 
 # Details
 
