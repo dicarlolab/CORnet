@@ -27,6 +27,8 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 ## Quick Start
 
+Install using `pip install https://github.com/dicarlolab/CORnet`
+
 ### Want to test on your own images?
 
 `python run.py test --restore_path <path to model weights> - --model S --data_path <path to your image folder>`
