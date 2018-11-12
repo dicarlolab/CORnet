@@ -7,7 +7,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "torch>=0.4.1+",
+    "torch>=0.4.0+",
     "torchvision",
     "numpy",
     "pandas",
@@ -18,7 +18,7 @@ requirements = [
 setup(
     name='CORnet',
     version='0.1.0',
-    description="A cortex-like neural network for object recognition",
+    description="Modeling the Neural Mechanisms of Core Object Recognition ",
     long_description=readme,
     author="Jonas Kubilius, Martin Schrimpf",
     author_email='qbilius@mit.edu, msch@mit.edu',
@@ -26,15 +26,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
-    license="MIT license",
+    license="GNU GPL v3",
     zip_safe=False,
-    keywords='CORnet brain-score',
+    keywords='CORnet Brain-Score',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU GPL v3',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.6'
     ],
 )
