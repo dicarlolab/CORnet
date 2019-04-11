@@ -16,6 +16,7 @@ import fire
 
 import torch
 import torch.nn as nn
+import torch.utils.model_zoo
 import torchvision
 
 from PIL import Image
@@ -28,6 +29,8 @@ torch.backends.cudnn.benchmark = True
 normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                              std=[0.229, 0.224, 0.225])
 
+HASHES = {'z': '5c427c9c', 'r': '5930a990', 's': '1d3f7974'}
+
 parser = argparse.ArgumentParser(description='ImageNet Training')
 parser.add_argument('--data_path', default='./',
                     help='path to ImageNet folder that contains train and val folders')
@@ -37,9 +40,9 @@ parser.add_argument('--model', choices=['Z', 'R', 'S'], default='Z',
                     help='which model to train')
 parser.add_argument('--times', default=5, type=int,
                     help='number of time steps to run the model (only R and S models)')
-parser.add_argument('--ngpus', default=1, type=int,
-                    help='number of GPUs to use')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+parser.add_argument('--ngpus', default=0, type=int,
+                    help='number of GPUs to use; 0 if you want to run on CPU')
+parser.add_argument('-j', '--workers', default=4, type=int,
                     help='number of data loading workers')
 parser.add_argument('--epochs', default=20, type=int,
                     help='number of total epochs to run')
@@ -47,7 +50,6 @@ parser.add_argument('--batch_size', default=256, type=int,
                     help='mini-batch size')
 parser.add_argument('--lr', '--learning_rate', default=.1, type=float,
                     help='initial learning rate')
-parser.add_argument('--lr_schedule', default='StepLR')
 parser.add_argument('--step_size', default=10, type=int,
                     help='after how many epochs learning rate should be decreased 10x')
 parser.add_argument('--momentum', default=.9, type=float, help='momentum')
@@ -55,7 +57,7 @@ parser.add_argument('--weight_decay', default=1e-4, type=float,
                     help='weight decay ')
 
 
-FLAGS, _ = parser.parse_known_args()
+FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
 
 def set_gpus(n=1):
@@ -77,7 +79,8 @@ def set_gpus(n=1):
         [str(i) for i in gpus['index'].iloc[:n]])
 
 
-set_gpus(FLAGS.ngpus)
+if FLAGS.ngpus > 0:
+    set_gpus(FLAGS.ngpus)
 
 
 def get_model():
@@ -94,7 +97,9 @@ def train(restore_path=None,
           ):
 
     model = get_model()
-    model = torch.nn.DataParallel(model).cuda()
+    model = torch.nn.DataParallel(model)
+    if FLAGS.ngpus > 0:
+        model = model.cuda()
 
     trainer = ImageNetTrain(model)
     validator = ImageNetVal(model)
@@ -176,10 +181,10 @@ def train(restore_path=None,
             data_load_start = time.time()
 
 
-def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use_gpu=False):
+def test(layer='decoder', sublayer='avgpool', imsize=224):
     """
     Suitable for small image sets. If you have thousands of images or it is
-    taking to long to extract features, consider using
+    taking too long to extract features, consider using
     `torchvision.datasets.ImageFolder`, using `ImageNetVal` as an example.
 
     Kwargs:
@@ -188,12 +193,15 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
     """
     model = get_model()
     model = torch.nn.DataParallel(model)
-    if use_gpu:
+    if FLAGS.ngpus > 0:
         model = model.cuda()
 
-    if restore_path is not None:
-        ckpt_data = torch.load(restore_path)
-        model.load_state_dict(ckpt_data['state_dict'])
+    model_letter = FLAGS.model.lower()
+    model_hash = HASHES[model_letter]
+    url = f'https://s3.amazonaws.com/cornet-models/cornet_{model_letter}-{model_hash}.pth'
+    map_location = None if FLAGS.ngpus > 0 else 'cpu'
+    ckpt_data = torch.utils.model_zoo.load_url(url, map_location=map_location)
+    model.load_state_dict(ckpt_data['state_dict'])
 
     transform = torchvision.transforms.Compose([
                     torchvision.transforms.Resize(imsize),
@@ -213,8 +221,14 @@ def test(layer='decoder', sublayer='avgpool', restore_path=None, imsize=224, use
     model_feats = []
     with torch.no_grad():
         model_feats = []
-        for fname in tqdm.tqdm(sorted(glob.glob(os.path.join(FLAGS.data_path, '*.*')))):
-            im = Image.open(fname).convert('RGB')
+        fnames = sorted(glob.glob(os.path.join(FLAGS.data_path, '*.*')))
+        if len(fnames) == 0:
+            raise f'No files found in {FLAGS.data_path}'
+        for fname in tqdm.tqdm(fnames):
+            try:
+                im = Image.open(fname).convert('RGB')
+            except:
+                raise f'Unable to load {fname}'
             im = transform(im)
             im = im.unsqueeze(0)  # adding extra dimension for batch size of 1
             _model_feats = []
@@ -238,7 +252,9 @@ class ImageNetTrain(object):
                                          momentum=FLAGS.momentum,
                                          weight_decay=FLAGS.weight_decay)
         self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=FLAGS.step_size)
-        self.loss = nn.CrossEntropyLoss().cuda()
+        self.loss = nn.CrossEntropyLoss()
+        if FLAGS.ngpus > 0:
+            self.loss = self.loss.cuda()
 
     def data(self):
         dataset = torchvision.datasets.ImageFolder(
@@ -260,7 +276,8 @@ class ImageNetTrain(object):
         start = time.time()
 
         self.lr.step(epoch=frac_epoch)
-        target = target.cuda(non_blocking=True)
+        if FLAGS.ngpus > 0:
+            target = target.cuda(non_blocking=True)
         output = self.model(inp)
 
         record = {}
@@ -285,7 +302,9 @@ class ImageNetVal(object):
         self.name = 'val'
         self.model = model
         self.data_loader = self.data()
-        self.loss = nn.CrossEntropyLoss(size_average=False).cuda()
+        self.loss = nn.CrossEntropyLoss(size_average=False)
+        if FLAGS.ngpus > 0:
+            self.loss = self.loss.cuda()
 
     def data(self):
         dataset = torchvision.datasets.ImageFolder(
@@ -310,7 +329,8 @@ class ImageNetVal(object):
         record = {'loss': 0, 'top1': 0, 'top5': 0}
         with torch.no_grad():
             for (inp, target) in tqdm.tqdm(self.data_loader, desc=self.name):
-                target = target.cuda(non_blocking=True)
+                if FLAGS.ngpus > 0:
+                    target = target.cuda(non_blocking=True)
                 output = self.model(inp)
 
                 record['loss'] += self.loss(output, target).item()
@@ -336,4 +356,4 @@ def accuracy(output, target, topk=(1,)):
 
 
 if __name__ == '__main__':
-    fire.Fire()
+    fire.Fire(command=FIRE_FLAGS)

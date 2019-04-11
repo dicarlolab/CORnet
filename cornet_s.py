@@ -51,6 +51,7 @@ class CORblock_S(nn.Module):
 
         self.output = Identity()  # for an easy access to this block's output
 
+        # need BatchNorm for each time step for training to work well
         for t in range(self.times):
             setattr(self, f'norm1_{t}', nn.BatchNorm2d(out_channels * self.scale))
             setattr(self, f'norm2_{t}', nn.BatchNorm2d(out_channels * self.scale))
@@ -115,7 +116,8 @@ def CORnet_S():
         if isinstance(m, nn.Conv2d):
             n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
             m.weight.data.normal_(0, math.sqrt(2. / n))
-        # nn.Linear is missing here for no good reason
+        # nn.Linear is missing here because I originally forgot 
+        # to add it during the training of this network
         elif isinstance(m, nn.BatchNorm2d):
             m.weight.data.fill_(1)
             m.bias.data.zero_()

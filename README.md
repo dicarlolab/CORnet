@@ -16,30 +16,34 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 ## Available Models
 
-*(Click on model names to download the weights of ImageNet-trained models. Note that you do not need to untar them to use during testing.)*
+*(Click on model names to download the weights of ImageNet-trained models. Note that you do not need to download the weights manually: we use [PyTorch Model Zoo](https://pytorch.org/docs/stable/model_zoo.html#torch.utils.model_zoo.load_url) to download the weights automatically.)*
 
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
-| [CORnet-Z](https://s3.amazonaws.com/cornet-models/cornet_z_epoch25.pth.tar) | Our smallest, fastest model. Good neural fits                            |
-| [CORnet-R](https://s3.amazonaws.com/cornet-models/cornet_r_epoch25.pth.tar) | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
-| [CORnet-S](https://s3.amazonaws.com/cornet-models/cornet_s_epoch43.pth.tar) | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
+| [CORnet-Z](https://s3.amazonaws.com/cornet-models/cornet_z-5c427c9c.pth) | Our smallest, fastest model. Good neural fits                            |
+| [CORnet-R](https://s3.amazonaws.com/cornet-models/cornet_r-5930a990.pth) | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
+| [CORnet-S](https://s3.amazonaws.com/cornet-models/cornet_s-1d3f7974.pth) | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
 
 
 ## Quick Start
 
 ### Want to test on your own images?
 
-`python run.py test --restore_path <path to model weights> - --model S --data_path <path to your image folder>`
+`python run.py test - --model S --data_path <path to your image folder>`
 
-**NOTE** the extra `-` between `--restore_path` and `--model`!
+**NOTE** the extra `-` between `test` and `--model`!
+
+Model weights will be automatically downloaded and restored.
 
 Add `-o <path to save features>` if you want model responses to be saved someplace.
+
+Add `--ngpus 1` if you want to run this on a GPU.
 
 ### Want to train on ImageNet?
 
 1. [Get ImageNet](https://github.com/facebook/fb.resnet.torch/blob/master/INSTALL.md#download-the-imagenet-dataset) if you don't have it yet. If you do, note that validation images need to be put in separate folders, just like train data. Follow the instructions in that link to do so easily.
 
-2. `python run.py train - --model Z --workers 20`. On a single Titan X, it will train for about 20 hours. Models R and S will require 2 GPUs. **NOTE** the extra `-` between `train` and `--model`!
+2. `python run.py train - --model Z --workers 20 --ngpus 1`. On a single Titan X, it will train for about 20 hours. Models R and S will require 2 GPUs. **NOTE** the extra `-` between `train` and `--model`!
 
 
 # Details
