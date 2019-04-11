@@ -45,6 +45,10 @@ Add `--ngpus 1` if you want to run this on a GPU.
 
 2. `python run.py train - --model Z --workers 20 --ngpus 1`. On a single Titan X, it will train for about 20 hours. Models R and S will require 2 GPUs. **NOTE** the extra `-` between `train` and `--model`!
 
+### If installation is needed
+
+`pip install git+https://github.com/dicarlolab/CORnet`
+
 
 # Details
 

@@ -84,7 +84,7 @@ if FLAGS.ngpus > 0:
 
 
 def get_model():
-    mod = importlib.import_module(f'cornet_{FLAGS.model.lower()}')
+    mod = importlib.import_module(f'cornet.cornet_{FLAGS.model.lower()}')
     model = getattr(mod, f'CORnet_{FLAGS.model}')()
     return model
 
