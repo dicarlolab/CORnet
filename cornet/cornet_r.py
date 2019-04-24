@@ -3,6 +3,9 @@ import torch
 from torch import nn
 
 
+HASH = '5930a990'
+
+
 class Flatten(nn.Module):
 
     """

@@ -3,6 +3,9 @@ from collections import OrderedDict
 from torch import nn
 
 
+HASH = '1d3f7974'
+
+
 class Flatten(nn.Module):
 
     """

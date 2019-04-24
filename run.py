@@ -29,8 +29,6 @@ torch.backends.cudnn.benchmark = True
 normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                              std=[0.229, 0.224, 0.225])
 
-HASHES = {'z': '5c427c9c', 'r': '5930a990', 's': '1d3f7974'}
-
 parser = argparse.ArgumentParser(description='ImageNet Training')
 parser.add_argument('--data_path', default='./',
                     help='path to ImageNet folder that contains train and val folders')
@@ -83,13 +81,16 @@ if FLAGS.ngpus > 0:
     set_gpus(FLAGS.ngpus)
 
 
-def get_model():
-    mod = importlib.import_module(f'cornet.cornet_{FLAGS.model.lower()}')
-    model = getattr(mod, f'CORnet_{FLAGS.model}')()
+def get_model(pretrained=False):
+    map_location = None if FLAGS.ngpus > 0 else 'cpu'
+    model = getattr(cornet, f'cornet_{FLAGS.model.lower()}')
+    model = model(pretrained=pretrained, map_location=map_location)
+    if FLAGS.ngpus > 0:
+        model = model.cuda()
     return model
 
 
-def train(restore_path=None,
+def train(restore_path=None,  # useful when you want to restart training
           save_train_epochs=.1,  # how often save output during training
           save_val_epochs=.5,  # how often save output during validation
           save_model_epochs=5,  # how often save model weigths
@@ -97,10 +98,6 @@ def train(restore_path=None,
           ):
 
     model = get_model()
-    model = torch.nn.DataParallel(model)
-    if FLAGS.ngpus > 0:
-        model = model.cuda()
-
     trainer = ImageNetTrain(model)
     validator = ImageNetVal(model)
 
@@ -191,18 +188,7 @@ def test(layer='decoder', sublayer='avgpool', imsize=224):
         - layers (choose from: V1, V2, V4, IT, decoder)
         - sublayer (e.g., output, conv1, avgpool)
     """
-    model = get_model()
-    model = torch.nn.DataParallel(model)
-    if FLAGS.ngpus > 0:
-        model = model.cuda()
-
-    model_letter = FLAGS.model.lower()
-    model_hash = HASHES[model_letter]
-    url = f'https://s3.amazonaws.com/cornet-models/cornet_{model_letter}-{model_hash}.pth'
-    map_location = None if FLAGS.ngpus > 0 else 'cpu'
-    ckpt_data = torch.utils.model_zoo.load_url(url, map_location=map_location)
-    model.load_state_dict(ckpt_data['state_dict'])
-
+    model = get_model(pretrained=True)
     transform = torchvision.transforms.Compose([
                     torchvision.transforms.Resize(imsize),
                     torchvision.transforms.ToTensor(),
