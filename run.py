@@ -19,6 +19,8 @@ import torch.nn as nn
 import torch.utils.model_zoo
 import torchvision
 
+import cornet
+
 from PIL import Image
 Image.warnings.simplefilter('ignore')
 
