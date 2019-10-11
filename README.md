@@ -29,9 +29,7 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 ### Want to test on your own images?
 
-`python run.py test - --model S --data_path <path to your image folder>`
-
-**NOTE** the extra `-` between `test` and `--model`!
+`python run.py test --model S --data_path <path to your image folder>`
 
 Model weights will be automatically downloaded and restored.
 
@@ -47,11 +45,9 @@ Add `--ngpus 1` if you want to run this on a GPU.
 
 3. You are ready to train:
 
-  - CORnet-Z: `python run.py train - --model Z --workers 20 --ngpus 1 --step_size 10 --epochs 25 --lr .01` (~20 hours)
-  - CORnet-R: `python run.py train - --model R --workers 20 --ngpus 2 --step_size 10 --epochs 25 --lr .1`
-  - CORnet-S: `python run.py train - --model S --workers 20 --ngpus 2 --step_size 20 --epochs 43 --lr .1` (several days)
-
-**NOTE** the extra `-` between `train` and `--model`!
+  - CORnet-Z: `python run.py train --model Z --workers 20 --ngpus 1 --step_size 10 --epochs 25 --lr .01` (~20 hours)
+  - CORnet-R: `python run.py train --model R --workers 20 --ngpus 2 --step_size 10 --epochs 25 --lr .1`
+  - CORnet-S: `python run.py train --model S --workers 20 --ngpus 2 --step_size 20 --epochs 43 --lr .1` (several days)
 
 ### If installation is needed
 

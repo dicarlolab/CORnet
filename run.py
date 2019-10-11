@@ -32,7 +32,7 @@ normalize = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                              std=[0.229, 0.224, 0.225])
 
 parser = argparse.ArgumentParser(description='ImageNet Training')
-parser.add_argument('--data_path', default='./',
+parser.add_argument('--data_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
@@ -87,6 +87,8 @@ def get_model(pretrained=False):
     map_location = None if FLAGS.ngpus > 0 else 'cpu'
     model = getattr(cornet, f'cornet_{FLAGS.model.lower()}')
     model = model(pretrained=pretrained, map_location=map_location)
+    if FLAGS.ngpus == 0:
+        model = model.module  # remove DataParallel
     if FLAGS.ngpus > 0:
         model = model.cuda()
     return model
@@ -203,7 +205,11 @@ def test(layer='decoder', sublayer='avgpool', imsize=224):
         """
         _model_feats.append(np.reshape(output, (len(output), -1)).numpy())
 
-    model_layer = getattr(getattr(model._modules['module'], layer), sublayer)
+    try:
+        m = model.module
+    except:
+        m = model
+    model_layer = getattr(getattr(m, layer), sublayer)
     model_layer.register_forward_hook(_store_feats)
 
     model_feats = []

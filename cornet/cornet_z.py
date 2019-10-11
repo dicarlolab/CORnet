@@ -44,10 +44,6 @@ class CORblock_Z(nn.Module):
 
 
 def CORnet_Z():
-
-    # def __init__(self):
-    #     super().__init__()
-
     model = nn.Sequential(OrderedDict([
         ('V1', CORblock_Z(3, 64, kernel_size=7, stride=2)),
         ('V2', CORblock_Z(64, 128)),
