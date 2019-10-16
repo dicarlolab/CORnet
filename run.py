@@ -39,7 +39,7 @@ parser.add_argument('-o', '--output_path', default=None,
 parser.add_argument('--model', choices=['Z', 'R', 'S'], default='Z',
                     help='which model to train')
 parser.add_argument('--times', default=5, type=int,
-                    help='number of time steps to run the model (only R and S models)')
+                    help='number of time steps to run the model (only R model)')
 parser.add_argument('--ngpus', default=0, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
 parser.add_argument('-j', '--workers', default=4, type=int,
@@ -86,7 +86,11 @@ if FLAGS.ngpus > 0:
 def get_model(pretrained=False):
     map_location = None if FLAGS.ngpus > 0 else 'cpu'
     model = getattr(cornet, f'cornet_{FLAGS.model.lower()}')
-    model = model(pretrained=pretrained, map_location=map_location)
+    if FLAGS.model.lower() == 'r':
+        model = model(pretrained=pretrained, map_location=map_location, times=FLAGS.times)
+    else:
+        model = model(pretrained=pretrained, map_location=map_location)
+
     if FLAGS.ngpus == 0:
         model = model.module  # remove DataParallel
     if FLAGS.ngpus > 0:
@@ -182,7 +186,7 @@ def train(restore_path=None,  # useful when you want to restart training
             data_load_start = time.time()
 
 
-def test(layer='decoder', sublayer='avgpool', imsize=224):
+def test(layer='decoder', sublayer='avgpool', time_step=0, imsize=224):
     """
     Suitable for small image sets. If you have thousands of images or it is
     taking too long to extract features, consider using
@@ -191,6 +195,8 @@ def test(layer='decoder', sublayer='avgpool', imsize=224):
     Kwargs:
         - layers (choose from: V1, V2, V4, IT, decoder)
         - sublayer (e.g., output, conv1, avgpool)
+        - time_step (which time step to use for storing features)
+        - imsize (resize image to how many pixels, default: 224)
     """
     model = get_model(pretrained=True)
     transform = torchvision.transforms.Compose([
@@ -227,7 +233,7 @@ def test(layer='decoder', sublayer='avgpool', imsize=224):
             im = im.unsqueeze(0)  # adding extra dimension for batch size of 1
             _model_feats = []
             model(im)
-            model_feats.append(_model_feats[0])
+            model_feats.append(_model_feats[time_step])
         model_feats = np.concatenate(model_feats)
 
     if FLAGS.output_path is not None:
