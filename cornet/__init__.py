@@ -26,7 +26,7 @@ def cornet_z(pretrained=False, map_location=None):
 
 
 def cornet_r(pretrained=False, map_location=None, times=5):
-    return get_model('r', pretrained=pretrained, map_location=map_location, time=times)
+    return get_model('r', pretrained=pretrained, map_location=map_location, times=times)
 
 
 def cornet_s(pretrained=False, map_location=None):

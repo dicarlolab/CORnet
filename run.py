@@ -200,7 +200,7 @@ def test(layer='decoder', sublayer='avgpool', time_step=0, imsize=224):
     """
     model = get_model(pretrained=True)
     transform = torchvision.transforms.Compose([
-                    torchvision.transforms.Resize(imsize),
+                    torchvision.transforms.Resize((imsize,imsize)),
                     torchvision.transforms.ToTensor(),
                     normalize,
                 ])
