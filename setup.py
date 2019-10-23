@@ -23,7 +23,7 @@ setup(
     author="Jonas Kubilius, Martin Schrimpf",
     author_email='qbilius@mit.edu, msch@mit.edu',
     url='https://github.com/dicarlolab/CORnet',
-    packages=find_packages('cornet'),
+    packages=['cornet'],
     include_package_data=True,
     install_requires=requirements,
     license="GNU GPL v3",
