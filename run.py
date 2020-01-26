@@ -1,13 +1,4 @@
-import os
-import argparse
-import time
-import glob
-import pickle
-import subprocess
-import shlex
-import io
-import pprint
-import importlib
+import os, argparse, time, glob, pickle, subprocess, shlex, io, pprint, importlib
 
 import numpy as np
 import pandas
@@ -102,7 +93,7 @@ def train(restore_path=None,  # useful when you want to restart training
           save_train_epochs=.1,  # how often save output during training
           save_val_epochs=.5,  # how often save output during validation
           save_model_epochs=5,  # how often save model weigths
-          save_model_secs=60*10  # how often save model (in sec)
+          save_model_secs=60 * 10  # how often save model (in sec)
           ):
 
     model = get_model()
