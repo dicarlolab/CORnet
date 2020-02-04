@@ -5,6 +5,8 @@ from cornet.cornet_z import CORnet_Z
 from cornet.cornet_z import HASH as HASH_Z
 from cornet.cornet_r import CORnet_R
 from cornet.cornet_r import HASH as HASH_R
+from cornet.cornet_rt import CORnet_RT
+from cornet.cornet_rt import HASH as HASH_RT
 from cornet.cornet_s import CORnet_S
 from cornet.cornet_s import HASH as HASH_S
 
@@ -27,6 +29,10 @@ def cornet_z(pretrained=False, map_location=None):
 
 def cornet_r(pretrained=False, map_location=None, times=5):
     return get_model('r', pretrained=pretrained, map_location=map_location, times=times)
+
+
+def cornet_rt(pretrained=False, map_location=None, times=5):
+    return get_model('rt', pretrained=pretrained, map_location=map_location, times=times)
 
 
 def cornet_s(pretrained=False, map_location=None):

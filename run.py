@@ -1,4 +1,4 @@
-import os, argparse, time, glob, pickle, subprocess, shlex, io, pprint, importlib
+import os, argparse, time, glob, pickle, subprocess, shlex, io, pprint
 
 import numpy as np
 import pandas
@@ -27,7 +27,7 @@ parser.add_argument('--data_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
-parser.add_argument('--model', choices=['Z', 'R', 'S'], default='Z',
+parser.add_argument('--model', choices=['Z', 'R', 'RT', 'S'], default='Z',
                     help='which model to train')
 parser.add_argument('--times', default=5, type=int,
                     help='number of time steps to run the model (only R model)')
@@ -139,7 +139,7 @@ def train(restore_path=None,  # useful when you want to restart training
             if FLAGS.output_path is not None:
                 records.append(results)
                 if len(results) > 1:
-                    pickle.dump(records, open(FLAGS.output_path + 'results.pkl', 'wb'))
+                    pickle.dump(records, open(os.path.join(FLAGS.output_path, 'results.pkl'), 'wb'))
 
                 ckpt_data = {}
                 ckpt_data['flags'] = FLAGS.__dict__.copy()
@@ -149,14 +149,14 @@ def train(restore_path=None,  # useful when you want to restart training
 
                 if save_model_secs is not None:
                     if time.time() - recent_time > save_model_secs:
-                        torch.save(ckpt_data, FLAGS.output_path +
-                                   'latest_checkpoint.pth.tar')
+                        torch.save(ckpt_data, os.path.join(FLAGS.output_path,
+                                                           'latest_checkpoint.pth.tar'))
                         recent_time = time.time()
 
                 if save_model_steps is not None:
                     if global_step in save_model_steps:
-                        torch.save(ckpt_data, FLAGS.output_path +
-                                   f'epoch_{epoch:02d}.pth.tar')
+                        torch.save(ckpt_data, os.path.join(FLAGS.output_path,
+                                                           f'epoch_{epoch:02d}.pth.tar'))
 
             else:
                 if len(results) > 1:
@@ -191,7 +191,7 @@ def test(layer='decoder', sublayer='avgpool', time_step=0, imsize=224):
     """
     model = get_model(pretrained=True)
     transform = torchvision.transforms.Compose([
-                    torchvision.transforms.Resize((imsize,imsize)),
+                    torchvision.transforms.Resize((imsize, imsize)),
                     torchvision.transforms.ToTensor(),
                     normalize,
                 ])
@@ -214,12 +214,12 @@ def test(layer='decoder', sublayer='avgpool', time_step=0, imsize=224):
         model_feats = []
         fnames = sorted(glob.glob(os.path.join(FLAGS.data_path, '*.*')))
         if len(fnames) == 0:
-            raise f'No files found in {FLAGS.data_path}'
+            raise FileNotFoundError(f'No files found in {FLAGS.data_path}')
         for fname in tqdm.tqdm(fnames):
             try:
                 im = Image.open(fname).convert('RGB')
             except:
-                raise f'Unable to load {fname}'
+                raise FileNotFoundError(f'Unable to load {fname}')
             im = transform(im)
             im = im.unsqueeze(0)  # adding extra dimension for batch size of 1
             _model_feats = []

@@ -14,6 +14,7 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 
 *Brought to you with <img src="resources/brain.png" width="25px"/> from [DiCarlo Lab](http://dicarlolab.mit.edu) @ [MIT](https://mit.edu).*
 
+
 ## Available Models
 
 *(Click on model names to download the weights of ImageNet-trained models. Note that you do not need to download the weights manually: we use [PyTorch Model Zoo](https://pytorch.org/docs/stable/model_zoo.html#torch.utils.model_zoo.load_url) to download the weights automatically.)*
@@ -21,15 +22,19 @@ A family of simple yet powerful deep neural networks for visual neuroscience. Wh
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
 | [CORnet-Z](https://s3.amazonaws.com/cornet-models/cornet_z-5c427c9c.pth) | Our smallest, fastest model. Good neural fits                            |
-| [CORnet-R](https://s3.amazonaws.com/cornet-models/cornet_r-5930a990.pth) | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
+| [CORnet-RT](https://s3.amazonaws.com/cornet-models/cornet_rt-933c001c.pth) | Recurrent version of CORnet-Z. Better than CORnet-Z + recurrent but slow |
 | [CORnet-S](https://s3.amazonaws.com/cornet-models/cornet_s-1d3f7974.pth) | CORnet-R with ResNet-like blocks. Best overall but slow to train         |
+
+
+*Note:* In the past, we provided a model called
+[CORnet-R](https://s3.amazonaws.com/cornet-models/cornet_r-5930a990.pth). However, we found out that CORnet-R was not doing a biological temporal unrolling as described in the [pre-print](#Citation) (Fig. 2, right). Instead, it was performing a non-biological unrolling (Fig. 2, left). We therefore issued a corrected version of the model but in order to avoid confusion, we labeled the biologically-unrolled version as CORnet-RT (that is, CORnet-RT is what is labeled in the pre-print as CORnet-R). We encourage to use CORnet-RT instead of CORnet-R, which is only provided as a legacy version in case you were already running experiments on it. In our experiments, we did not see major differences between the two models.
 
 
 ## Quick Start
 
 ### Want to test on your own images?
 
-`python run.py test --model S --data_path <path to your image folder>`
+`python run.py test --model S --data_path <path to your image folder> --output_path <path where you want output features saved>`
 
 Model weights will be automatically downloaded and restored.
 
@@ -45,9 +50,9 @@ Add `--ngpus 1` if you want to run this on a GPU.
 
 3. You are ready to train:
 
-  - CORnet-Z: `python run.py train --model Z --workers 20 --ngpus 1 --step_size 10 --epochs 25 --lr .01` (~20 hours)
-  - CORnet-R: `python run.py train --model R --workers 20 --ngpus 2 --step_size 10 --epochs 25 --lr .1`
-  - CORnet-S: `python run.py train --model S --workers 20 --ngpus 2 --step_size 20 --epochs 43 --lr .1` (several days)
+  - CORnet-Z: `python run.py train --model Z --workers 20 --ngpus 1 --step_size 10 --epochs 25 --lr .01 --data_path <path to imagenet> --output_path <path to saving trained model>` (~20 hours)
+  - CORnet-RT: `python run.py train --model RT --workers 20 --ngpus 2 --step_size 10 --epochs 25 --lr .1 --data_path <path to imagenet> --output_path <path to saving trained model>`
+  - CORnet-S: `python run.py train --model S --workers 20 --ngpus 2 --step_size 20 --epochs 43 --lr .1 --data_path <path to imagenet> --output_path <path to saving trained model>` (several days)
 
 ### If installation is needed
 
@@ -62,6 +67,7 @@ Deep artificial neural networks with spatially repeated processing (aka, deep co
 
 Read more: [Kubilius\*, Schrimpf\*, et al. (biorxiv, 2018)](https://doi.org/10.1101/408385)
 
+
 ## Requirements
 
 - Python 3.6+
@@ -71,9 +77,17 @@ Read more: [Kubilius\*, Schrimpf\*, et al. (biorxiv, 2018)](https://doi.org/10.1
 - tqdm
 - fire
 
+
 ## Citation
 
-Kubilius, J., Schrimpf, M., Nayebi, A., Bear, D., Yamins, D.L.K., DiCarlo, J.J. (2018) *CORnet: Modeling the Neural Mechanisms of Core Object Recognition.* biorxiv. doi:10.1101/408385
+For CORnet-Z and CORnet-RT:
+
+Kubilius, J., Schrimpf, M., Nayebi, A., Bear, D., Yamins, D.L.K., DiCarlo, J.J. (2018) CORnet: Modeling the Neural Mechanisms of Core Object Recognition. *biorxiv.* doi:10.1101/408385
+
+For CORnet-S:
+
+Kubilius, J., Schrimpf, M., Kar, K., Rajalingham, R., Hong, H., Majaj, N., ... & Nayebi, A. (2019). Brain-like object recognition with high-performing shallow recurrent ANNs. In *Advances in Neural Information Processing Systems* (pp. 12785-12796).
+
 
 ## License
 
