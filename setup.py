@@ -7,7 +7,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "torch>=0.4.0+",
+    "torch>=0.4.0",
     "torchvision",
     "numpy",
     "pandas",
